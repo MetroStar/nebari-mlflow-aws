@@ -1,3 +1,8 @@
+variable "chart_name" {
+  description = "Chart name"
+  type        = string
+}
+
 variable "create_namespace" {
   type = bool
 }
@@ -19,6 +24,11 @@ variable "keycloak_config" {
 
 variable "namespace" {
   type = string
+}
+
+variable "overrides" {
+  type    = map(any)
+  default = {}
 }
 
 variable "mlflow_sa_name" {

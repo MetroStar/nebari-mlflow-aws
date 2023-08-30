@@ -15,22 +15,9 @@ variable "base_url" {
   type        = string
 }
 
-variable "create_namespace" {
-  type = bool
-}
-
 variable "external_url" {
   description = "External url for keycloak auth endpoint"
   type        = string
-}
-
-variable "name" {
-  description = "Prefix name to assign to Nebari resources"
-  type        = string
-}
-
-variable "namespace" {
-  type = string
 }
 
 variable "valid_redirect_uris" {
@@ -50,9 +37,32 @@ variable "signing_key_ref" {
 
 # MLFLOW SETTINGS
 # -----------------
+variable "chart_name" {
+  description = "Chart name"
+  type        = string
+}
+
+variable "project_name" {
+  description = "Prefix name to assign to Nebari resources"
+  type        = string
+}
+
+variable "namespace" {
+  type = string
+}
+
+variable "create_namespace" {
+  type = bool
+}
+
 variable "ingress_host" {
   description = "DNS name for Traefik host"
   type        = string
+}
+
+variable "overrides" {
+  type    = map(any)
+  default = {}
 }
 
 # IRSA SETTINGS
@@ -60,10 +70,5 @@ variable "ingress_host" {
 
 variable "cluster_oidc_issuer_url" {
   description = "The URL on the EKS cluster for the OpenID Connect identity provider"
-  type        = string
-}
-
-variable "oidc_provider_arn" {
-  description = "The ARN of the OIDC Provider"
   type        = string
 }
