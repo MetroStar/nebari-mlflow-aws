@@ -7,6 +7,10 @@ from _nebari.stages.base import NebariTerraformStage
 from nebari.hookspecs import NebariStage, hookimpl
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+from _nebari.stages.tf_objects import (
+    NebariKubernetesProvider,
+    NebariTerraformState,
+)
 
 NUM_ATTEMPTS = 10
 TIMEOUT = 10
@@ -28,6 +32,14 @@ class MlflowStage(NebariTerraformStage):
     priority = 102
     wait = True # wait for install to complete on nebari deploy
     input_schema = InputSchema
+
+    def tf_objects(self) -> List[Dict]:
+        return [
+            NebariTerraformState(self.name, self.config),
+            NebariKubernetesProvider(self.config),
+        ]
+
+
 
     @property
     def template_directory(self):
