@@ -74,7 +74,7 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          sbom: true
+          sbom: false
           provenance: false
           build-args: |
             MLFLOW_VERSION=${{ env.MLFLOW_VERSION }}
