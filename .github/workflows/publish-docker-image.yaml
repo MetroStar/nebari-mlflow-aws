@@ -36,7 +36,7 @@ jobs:
       - name: Set variables
         run: |
           if [ "${{ inputs.mlflow_version }}" == "" ] || [ "${{ inputs.mlflow_version }}" == "default" ]; then
-            MLFLOW_VERSION=$(sed -n 's/^ARG MLFLOW_VERSION=//p' docker/Dockerfile)
+            MLFLOW_VERSION=$(sed -n 's/^appVersion: //p' src/nebari_plugin_mlflow_aws/terraform/modules/mlflow/chart/Chart.yaml | tr -d '"')
           else
             MLFLOW_VERSION=${{ inputs.mlflow_version }}
           fi

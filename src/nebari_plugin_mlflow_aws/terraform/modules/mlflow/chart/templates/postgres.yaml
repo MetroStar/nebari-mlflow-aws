@@ -102,12 +102,12 @@ stringData:
   POSTGRES_SERVER: {{ .Release.Name }}-postgres
   POSTGRES_PORT: "5432"
   {{- else }}
-  POSTGRES_SERVER: {{ .Values.db.server | quote }}
-  POSTGRES_PORT: {{ .Values.db.port | quote }}
+  POSTGRES_SERVER: {{ .Values.storage.db.server | quote }}
+  POSTGRES_PORT: {{ .Values.storage.db.port | quote }}
   {{- end }}
-  POSTGRES_DB: {{ .Values.db.dbName | quote }}
-  POSTGRES_USER: {{ .Values.db.username | quote }}
-  POSTGRES_PASSWORD: {{ .Values.db.password | quote }}
+  POSTGRES_DB: {{ .Values.storage.db.dbName | quote }}
+  POSTGRES_USER: {{ .Values.storage.db.username | quote }}
+  POSTGRES_PASSWORD: {{ .Values.storage.db.password | quote }}
 
 {{- end }}
 
