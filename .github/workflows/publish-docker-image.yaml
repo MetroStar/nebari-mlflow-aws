@@ -66,6 +66,7 @@ jobs:
             type=raw,value=${{ env.MLFLOW_VERSION }}-{{date 'YYYYMMDD-HHmm'}}
           labels: |
             runnumber=${{ env.GITHUB_RUN_ID }}
+            org.opencontainers.image.description=MLflow with AWS and Postgres dependencies
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
