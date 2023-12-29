@@ -41,6 +41,7 @@ jobs:
             MLFLOW_VERSION=${{ inputs.mlflow_version }}
           fi
           echo "MLFLOW_VERSION=${MLFLOW_VERSION}" >> ${GITHUB_ENV}
+          env | sort
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -63,7 +64,7 @@ jobs:
           tags: |
             type=raw,value=${{ env.MLFLOW_VERSION }}-{{date 'YYYYMMDD-HHmm'}}
           labels: |
-            runnumber=${{ GITHUB_RUN_ID }}
+            runnumber=${{ env.GITHUB_RUN_ID }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
