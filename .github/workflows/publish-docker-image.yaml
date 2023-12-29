@@ -63,7 +63,8 @@ jobs:
           tags: |
             type=raw,value=${{ env.MLFLOW_VERSION }}-{{date 'YYYYMMDD-HHmm'}}
           labels: |
-            runnumber=${GITHUB_RUN_ID}
+            runnumber=${{ env.GITHUB_RUN_ID }}
+            org.opencontainers.image.description="MLflow with AWS and Postgres packages"
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -73,7 +74,7 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          sbom: false
+          sbom: true
           provenance: false
           build-args: |
             MLFLOW_VERSION=${{ env.MLFLOW_VERSION }}
