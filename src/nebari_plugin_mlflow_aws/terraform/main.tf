@@ -28,8 +28,8 @@ resource "aws_s3_bucket" "artifact_storage" {
 
 # If enable_s3_encryption is true, create a key and apply Server Side Encryption to S3 bucket
 resource "aws_kms_key" "mlflow_kms_key" {
-  count                   = var.enable_s3_encryption ? 1 : 0
-  description             = "This key is used to encrypt bucket objects for the AWS MLflow extension"
+  count       = var.enable_s3_encryption ? 1 : 0
+  description = "This key is used to encrypt bucket objects for the AWS MLflow extension"
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "mlflow_s3_encryption" {
@@ -65,32 +65,41 @@ module "iam_assumable_role_admin" {
 resource "aws_iam_policy" "mlflow_s3" {
   name_prefix = "${var.project_name}-s3-mlflow-bucket-access"
   description = "Grants workloads full access to S3 bucket for MLflow artifact storage"
-  policy      = <<EOT
-{
-  "Version": "2012-10-17",
-  "Statement": [
-        {
-            "Sid": "ListAllBuckets",
-            "Effect": "Allow",
-            "Action": "s3:ListAllMyBuckets",
-            "Resource": "*"
-        },
-        {
-            "Sid": "ListObjectsInBucket",
-            "Effect": "Allow",
-            "Action": "s3:ListBucket",
-            "Resource": "${aws_s3_bucket.artifact_storage.arn}"
-        },
-        {
-            "Sid": "AllObjectActions",
-            "Effect": "Allow",
-            "Action": "s3:*Object",
-            "Resource": "${aws_s3_bucket.artifact_storage.arn}/*"
-        }
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid      = "ListAllBuckets"
+        Effect   = "Allow"
+        Action   = "s3:ListAllMyBuckets"
+        Resource = "*"
+      },
+      {
+        Sid      = "ListObjectsInBucket"
+        Effect   = "Allow"
+        Action   = "s3:ListBucket"
+        Resource = aws_s3_bucket.artifact_storage.arn
+      },
+      {
+        Sid      = "AllObjectActions"
+        Effect   = "Allow"
+        Action   = "s3:*Object"
+        Resource = "${aws_s3_bucket.artifact_storage.arn}/*"
+      },
+      {
+        Sid    = "KMS"
+        Effect = "Allow"
+        Action = [
+          "kms:Decrypt",
+          "kms:Encrypt",
+          "kms:ReEncrypt*",
+          "kms:DescribeKey",
+          "kms:GenerateDataKey*"
+        ]
+        Resource = aws_kms_key.mlflow_kms_key[0].arn
+      },
     ]
-}
-
-  EOT
+  })
 }
 
 module "keycloak" {
