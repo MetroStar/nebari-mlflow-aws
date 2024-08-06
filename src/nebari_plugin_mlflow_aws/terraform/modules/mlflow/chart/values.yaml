@@ -107,9 +107,9 @@ timeout: 300
 
 storage:
   artifacts:
+    dedicatedServer: false
     artifactsDestination: ""
     defaultArtifactRoot: ""
-    proxyArtifacts: false
   db:
     enabled: true
     existingSecret: ""
