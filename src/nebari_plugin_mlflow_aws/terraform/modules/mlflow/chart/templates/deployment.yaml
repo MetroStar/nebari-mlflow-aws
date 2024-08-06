@@ -158,6 +158,7 @@ spec:
 
 {{- if .Values.storage.artifacts.dedicatedServer }}
 
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
