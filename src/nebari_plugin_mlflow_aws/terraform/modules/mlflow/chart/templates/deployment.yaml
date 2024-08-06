@@ -1,3 +1,4 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -73,6 +74,15 @@ spec:
           - --backend-store-uri
           - "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_SERVER):$(POSTGRES_PORT)/$(POSTGRES_DB)"
           {{- end }}
+          {{- if .Values.ingress.path }}
+          - --static-prefix
+          - {{ .Values.ingress.path }}
+          {{- end }}
+          {{- if .Values.storage.artifacts.dedicatedServer }}
+          - --default-artifact-root
+          - http://{{ include "mlflow.fullname" . }}-artifacts.{{ .Release.Namespace }}:{{ .Values.service.port }}/api/2.0/mlflow-artifacts/artifacts/experiments
+          - --no-serve-artifacts
+          {{- else }}
           {{- if .Values.storage.artifacts.artifactsDestination }}
           - --artifacts-destination
           - {{ .Values.storage.artifacts.artifactsDestination }}
@@ -87,12 +97,7 @@ spec:
           - --default-artifact-root
           - "mlflow-artifacts:/"
           {{- end }}
-          {{- if .Values.storage.artifacts.proxyArtifacts }}
           - --serve-artifacts
-          {{- end }}
-          {{- if .Values.ingress.path }}
-          - --static-prefix
-          - {{ .Values.ingress.path }}
           {{- end }}
           {{- range $a := .Values.args }}
           - {{ $a }}
@@ -150,6 +155,111 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+
+{{- if .Values.storage.artifacts.dedicatedServer }}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mlflow.fullname" . }}-artifacts
+  labels:
+    {{- include "mlflow.labels" . | nindent 4 }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: mlflow-artifacts
+      app.kubernetes.io/name: mlflow-artifacts
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        app.kubernetes.io/instance: mlflow-artifacts
+        app.kubernetes.io/name: mlflow-artifacts
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "mlflow.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          command:
+          - mlflow
+          args:
+          - server
+          - --host
+          - 0.0.0.0
+          - --port
+          - "5000"
+          - --gunicorn-opts
+          - "--log-level {{ .Values.logLevel }} --timeout {{ .Values.timeout }}"
+          - --serve-artifacts
+          - --artifacts-only
+          {{- if .Values.storage.artifacts.artifactsDestination }}
+          - --artifacts-destination
+          - {{ .Values.storage.artifacts.artifactsDestination }}
+          {{- else if .Values.storage.artifacts.minio }}
+          - --artifacts-destination
+          - "s3://{{ .Values.storage.artifacts.minio.bucketName }}"
+          {{- end }}
+          {{- range $a := .Values.args }}
+          - {{ $a }}
+          {{- end }}
+          {{- if .Values.env }}
+          env:
+          {{ toYaml .Values.env | nindent 10 }}
+          {{- end }}
+          {{- if or .Values.envFrom .Values.storage.artifacts.minio .Values.storage.db.enabled }}
+          envFrom:
+          {{- if .Values.storage.artifacts.minio }}
+          - secretRef:
+              name: {{ .Release.Name }}-minio-env
+          {{- end }}
+          {{- if .Values.envFrom }}
+          {{ toYaml .Values.envFrom | nindent 10 }}
+          {{- end }}
+          {{- end }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+          - name: http
+            containerPort: 5000
+            protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+{{- end }}
 
 {{- if .Values.auth.enabled }}
 

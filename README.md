@@ -25,7 +25,7 @@ This MLflow extension is designed to integrate into Nebari deployments utilizing
 ### Installation
 Prerequisites:
 - Nebari must be deployed using the provider AWS
-- Nebari version 2023.10.1 or later
+- Nebari version 2024.5.1 or later
 
 Installing the MLflow extension is as straightforward as installing a Python package. Run the following commands:
 

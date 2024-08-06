@@ -1,8 +1,3 @@
-# Configure the AWS Provider
-provider "aws" {
-  region = var.region
-}
-
 locals {
   mlflow_sa_name = "${var.chart_name}-sa"
 }
@@ -19,10 +14,12 @@ resource "random_id" "bucket_name_suffix" {
 
 resource "aws_s3_bucket" "artifact_storage" {
   bucket = "${var.project_name}-mlflow-artifacts-${random_id.bucket_name_suffix.hex}"
-  acl    = "private"
+}
 
-  versioning {
-    enabled = true
+resource "aws_s3_bucket_versioning" "artifact_storage" {
+  bucket = aws_s3_bucket.artifact_storage.id
+  versioning_configuration {
+    status = "Enabled"
   }
 }
 
